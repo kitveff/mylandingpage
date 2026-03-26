@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Артём Китаев — SRE / DevOps / Vibe-coder</title>
+  <meta name="description" content="SRE-инженер, DevOps и Python-разработчик из Санкт-Петербурга. Telegram-боты, автоматизация, CI/CD, лендинги.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:           #07070f;
+      --surface:      #0d0d1c;
+      --surface2:     #111128;
+      --primary:      #00d4ff;
+      --blue:         #3b82f6;
+      --text:         #e2e8f0;
+      --dim:          #94a3b8;
+      --muted:        #64748b;
+      --border:       rgba(0,212,255,.1);
+      --border-hover: rgba(0,212,255,.38);
+      --glow:         rgba(0,212,255,.14);
+      --glow-strong:  rgba(0,212,255,.26);
+      --font-mono: 'JetBrains Mono', 'Courier New', monospace;
+      --font-body: 'Manrope', -apple-system, sans-serif;
+      --ease-out: cubic-bezier(0.16,1,0.3,1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+      cursor: none;
+      transition: background .4s ease, color .4s ease;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ── CURSOR ── */
+    #cur-dot {
+      position: fixed; width: 6px; height: 6px;
+      background: var(--primary); border-radius: 50%;
+      pointer-events: none; z-index: 9999;
+      transform: translate(-50%,-50%);
+      mix-blend-mode: screen; transition: opacity .15s;
+    }
+    #cur-ring {
+      position: fixed; width: 30px; height: 30px;
+      border: 1px solid rgba(0,212,255,.5); border-radius: 50%;
+      pointer-events: none; z-index: 9998;
+      transform: translate(-50%,-50%);
+      transition: width .15s var(--ease-out), height .15s var(--ease-out),
+                  border-color .15s, opacity .15s;
+    }
+    #cur-ring.h { width: 46px; height: 46px; border-color: rgba(0,212,255,.85); }
+
+    /* ── MOBILE MENU ── */
+    #mob-menu {
+      position: fixed; inset: 0; z-index: 98;
+      background: rgba(7,7,15,.97);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 2.5rem;
+      transform: translateX(100%);
+      transition: transform .5s var(--ease-out);
+    }
+    #mob-menu.open { transform: translateX(0); }
+    #mob-menu a {
+      font-family: var(--font-mono); font-size: 1.4rem;
+      color: var(--muted); letter-spacing: .1em; text-transform: uppercase;
+      transition: color .2s;
+    }
+    #mob-menu a:hover { color: var(--primary); }
+    #mob-close {
+      position: absolute; top: 1.5rem; right: 1.5rem;
+      background: none; border: none; color: var(--muted);
+      font-size: 1.5rem; cursor: pointer;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 1.25rem 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      transition: background .3s, backdrop-filter .3s, border-bottom .3s;
+    }
+    nav.scrolled {
+      background: rgba(7,7,15,.88);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: var(--font-mono); font-size: .875rem;
+      color: var(--primary); letter-spacing: .06em;
+    }
+    .nav-logo span { color: var(--muted); }
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a {
+      font-family: var(--font-mono); font-size: .72rem;
+      color: var(--muted); letter-spacing: .1em; text-transform: uppercase;
+      transition: color .2s; position: relative;
+    }
+    .nav-links a::after {
+      content: ''; position: absolute; bottom: -2px; left: 0;
+      width: 0; height: 1px; background: var(--primary);
+      transition: width .25s var(--ease-out);
+    }
+    .nav-links a:hover { color: var(--primary); }
+    .nav-links a:hover::after { width: 100%; }
+    .nav-cta {
+      font-family: var(--font-mono); font-size: .72rem;
+      padding: .5rem 1.25rem; border: 1px solid var(--primary);
+      border-radius: 4px; color: var(--primary);
+      letter-spacing: .08em; text-transform: uppercase;
+      transition: background .2s, box-shadow .2s, color .2s;
+    }
+    .nav-cta:hover {
+      background: var(--primary); color: var(--bg);
+      box-shadow: 0 0 22px rgba(0,212,255,.4);
+    }
+    .hamburger {
+      display: none; flex-direction: column; gap: 5px; cursor: pointer;
+    }
+    .hamburger span { display: block; width: 24px; height: 1px; background: var(--text); }
+
+    /* ── HERO ── */
+    #hero {
+      position: relative; min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; padding: 7rem 2rem 5rem;
+    }
+    #hero-canvas { position: absolute; inset: 0; z-index: 0; }
+    .hero-inner {
+      position: relative; z-index: 1;
+      max-width: 860px; width: 100%; text-align: center;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: .5rem;
+      font-family: var(--font-mono); font-size: .72rem;
+      color: var(--primary);
+      background: rgba(0,212,255,.07); border: 1px solid rgba(0,212,255,.2);
+      border-radius: 9999px; padding: .35rem 1rem;
+      letter-spacing: .12em; text-transform: uppercase;
+      margin-bottom: 1.75rem;
+      opacity: 0; animation: fadeUp .7s var(--ease-out) .2s forwards;
+    }
+    .hero-badge::before {
+      content: ''; width: 6px; height: 6px;
+      background: var(--primary); border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    .hero-name {
+      font-family: var(--font-mono);
+      font-size: clamp(2.4rem, 8vw, 5.5rem);
+      font-weight: 700; line-height: 1.06; letter-spacing: -.02em;
+      margin-bottom: 1.25rem;
+      background: linear-gradient(135deg, #fff 0%, #e2e8f0 35%, var(--primary) 68%, var(--blue) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      opacity: 0; animation: fadeUp .7s var(--ease-out) .4s forwards;
+    }
+    .hero-role {
+      font-family: var(--font-mono); font-size: clamp(.95rem, 2.5vw, 1.4rem);
+      color: var(--dim); margin-bottom: 1.5rem;
+      display: flex; align-items: center; justify-content: center; gap: .4rem;
+      opacity: 0; animation: fadeUp .7s var(--ease-out) .6s forwards;
+    }
+    .hero-role .pfx { color: var(--muted); }
+    #tw { color: var(--primary); }
+    .cur {
+      display: inline-block; width: 2px; height: 1.15em;
+      background: var(--primary); vertical-align: middle; margin-left: 1px;
+      animation: blink 1s step-end infinite;
+    }
+    .hero-tag {
+      font-size: 1rem; color: var(--muted);
+      margin-bottom: 2.75rem; letter-spacing: .02em;
+      opacity: 0; animation: fadeUp .7s var(--ease-out) .8s forwards;
+    }
+    .hero-tag em { font-style: normal; color: var(--dim); }
+    .hero-btns {
+      display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+      margin-bottom: 4rem;
+      opacity: 0; animation: fadeUp .7s var(--ease-out) 1s forwards;
+    }
+    .btn-p {
+      display: inline-flex; align-items: center; gap: .6rem;
+      font-family: var(--font-mono); font-size: .875rem; font-weight: 600;
+      letter-spacing: .04em; padding: .85rem 2rem;
+      background: var(--primary); color: var(--bg);
+      border: none; border-radius: 8px; cursor: pointer;
+      transition: transform .25s var(--ease-out), box-shadow .25s;
+    }
+    .btn-p:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,212,255,.38); }
+    .btn-s {
+      display: inline-flex; align-items: center; gap: .6rem;
+      font-family: var(--font-mono); font-size: .875rem; font-weight: 500;
+      letter-spacing: .04em; padding: .85rem 2rem;
+      background: transparent; color: var(--text);
+      border: 1px solid rgba(255,255,255,.14); border-radius: 8px; cursor: pointer;
+      transition: border-color .25s, color .25s, transform .25s var(--ease-out), box-shadow .25s;
+    }
+    .btn-s:hover {
+      border-color: rgba(255,255,255,.38); color: #fff;
+      transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.3);
+    }
+    .scroll-hint {
+      display: flex; flex-direction: column; align-items: center; gap: .5rem;
+      opacity: 0; animation: fadeUp .7s var(--ease-out) 1.2s forwards;
+    }
+    .scroll-hint span {
+      font-family: var(--font-mono); font-size: .65rem;
+      color: var(--muted); letter-spacing: .18em; text-transform: uppercase;
+    }
+    .scroll-pip {
+      width: 22px; height: 36px;
+      border: 1px solid rgba(0,212,255,.28); border-radius: 9999px;
+      display: flex; align-items: flex-start; justify-content: center; padding-top: 5px;
+    }
+    .scroll-pip::after {
+      content: ''; width: 3px; height: 7px;
+      background: var(--primary); border-radius: 9999px;
+      animation: scrollBounce 2s ease-in-out infinite;
+    }
+
+    /* ── SECTION SHARED ── */
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 7rem 2rem; }
+    .sep { border-top: 1px solid rgba(255,255,255,.04); }
+    .s-label {
+      font-family: var(--font-mono); font-size: .72rem;
+      color: var(--primary); letter-spacing: .2em; text-transform: uppercase;
+      margin-bottom: .75rem;
+      display: flex; align-items: center; gap: .75rem;
+    }
+    .s-label::before { content: ''; width: 2rem; height: 1px; background: var(--primary); }
+    .s-title {
+      font-family: var(--font-mono);
+      font-size: clamp(1.65rem, 4vw, 2.6rem);
+      font-weight: 600; line-height: 1.15; letter-spacing: -.02em;
+    }
+    .s-head { margin-bottom: 3.5rem; }
+
+    /* ── REVEAL ── */
+    .rv {
+      opacity: 0; transform: translateY(28px);
+      transition: opacity .65s var(--ease-out), transform .65s var(--ease-out);
+    }
+    .rv.vis { opacity: 1; transform: translateY(0); }
+    .d1 { transition-delay: .1s; }
+    .d2 { transition-delay: .18s; }
+    .d3 { transition-delay: .26s; }
+    .d4 { transition-delay: .34s; }
+    .d5 { transition-delay: .42s; }
+
+    /* ── ABOUT ── */
+    .about-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center;
+    }
+    .about-text p {
+      font-size: 1.0625rem; color: var(--dim); line-height: 1.78; margin-bottom: 1.2rem;
+    }
+    .about-text p:last-child { margin-bottom: 0; }
+    .about-text strong { color: var(--text); font-weight: 600; }
+    .hl {
+      background: linear-gradient(90deg,rgba(0,212,255,.13),rgba(59,130,246,.08));
+      padding: .1em .4em; border-radius: 3px;
+      color: var(--primary); font-family: var(--font-mono); font-size: .92em;
+    }
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    .stat {
+      background: rgba(255,255,255,.02); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.5rem; position: relative; overflow: hidden;
+      transition: border-color .25s, box-shadow .25s;
+    }
+    .stat::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+      opacity: 0; transition: opacity .25s;
+    }
+    .stat:hover { border-color: var(--border-hover); box-shadow: var(--glow) 0 0 22px; }
+    .stat:hover::before { opacity: 1; }
+    .stat-n {
+      font-family: var(--font-mono); font-size: 2.4rem; font-weight: 700;
+      color: var(--primary); line-height: 1; margin-bottom: .3rem;
+    }
+    .stat-l { font-size: .8rem; color: var(--muted); line-height: 1.4; }
+
+    /* ── SKILLS ── */
+    .skills-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap: 1.25rem;
+    }
+    .sk-card {
+      background: rgba(255,255,255,.018); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.65rem; position: relative; overflow: hidden;
+      transition: border-color .25s, box-shadow .25s, transform .25s var(--ease-out);
+    }
+    .sk-card::after {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(circle at top right, rgba(0,212,255,.05), transparent 60%);
+      opacity: 0; transition: opacity .4s;
+    }
+    .sk-card:hover { border-color: var(--border-hover); box-shadow: 0 0 26px var(--glow); transform: translateY(-3px); }
+    .sk-card:hover::after { opacity: 1; }
+    .sk-hd {
+      display: flex; align-items: center; gap: .7rem;
+      margin-bottom: 1.1rem; padding-bottom: .9rem;
+      border-bottom: 1px solid rgba(255,255,255,.055);
+    }
+    .sk-ico {
+      width: 34px; height: 34px;
+      background: rgba(0,212,255,.09); border: 1px solid rgba(0,212,255,.18);
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
+      font-size: .95rem; flex-shrink: 0;
+    }
+    .sk-name {
+      font-family: var(--font-mono); font-size: .7rem;
+      color: var(--primary); letter-spacing: .12em; text-transform: uppercase;
+    }
+    .sk-tags { display: flex; flex-wrap: wrap; gap: .45rem; }
+    .tag {
+      font-family: var(--font-mono); font-size: .72rem;
+      padding: .28rem .7rem;
+      background: rgba(255,255,255,.035); border: 1px solid rgba(255,255,255,.07);
+      border-radius: 4px; color: var(--dim);
+      transition: border-color .2s, color .2s, background .2s;
+    }
+    .tag:hover { border-color: rgba(0,212,255,.38); color: var(--primary); background: rgba(0,212,255,.06); }
+    .tag.f { border-color: rgba(0,212,255,.28); color: var(--primary); background: rgba(0,212,255,.08); font-weight: 500; }
+
+    /* ── SERVICES ── */
+    .svc-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(195px,1fr)); gap: 1.2rem;
+    }
+    .svc {
+      background: rgba(255,255,255,.018); border: 1px solid var(--border);
+      border-radius: 14px; padding: 2rem 1.5rem; text-align: center; cursor: default;
+      position: relative; overflow: hidden;
+      transition: border-color .25s, box-shadow .25s, transform .25s var(--ease-out);
+    }
+    .svc::before {
+      content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+      background: radial-gradient(circle, rgba(0,212,255,.05), transparent 60%);
+      opacity: 0; transition: opacity .4s;
+    }
+    .svc:hover { border-color: var(--border-hover); box-shadow: 0 0 26px var(--glow); transform: translateY(-4px); }
+    .svc:hover::before { opacity: 1; }
+    .svc-ico {
+      width: 50px; height: 50px;
+      background: rgba(0,212,255,.08); border: 1px solid rgba(0,212,255,.18);
+      border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; margin: 0 auto 1.1rem;
+    }
+    .svc-title {
+      font-family: var(--font-mono); font-size: .85rem; font-weight: 600;
+      color: var(--text); margin-bottom: .5rem; letter-spacing: .02em;
+    }
+    .svc-desc { font-size: .8rem; color: var(--muted); line-height: 1.55; }
+
+    /* ── PORTFOLIO ── */
+    .port-notice {
+      font-family: var(--font-mono); font-size: .8rem; color: var(--muted);
+      background: rgba(0,212,255,.045); border: 1px solid rgba(0,212,255,.1);
+      border-radius: 8px; padding: .7rem 1.2rem;
+      margin-bottom: 2rem; display: flex; align-items: center; gap: .6rem;
+    }
+    .port-notice::before { content: '//'; color: var(--primary); font-weight: 700; opacity: .7; }
+    .port-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(265px,1fr)); gap: 1.4rem;
+    }
+    .proj {
+      background: rgba(255,255,255,.018); border: 1px solid var(--border);
+      border-radius: 14px; overflow: hidden;
+      transition: border-color .25s, box-shadow .25s, transform .28s var(--ease-out);
+    }
+    .proj:hover { border-color: var(--border-hover); box-shadow: 0 0 36px var(--glow-strong); transform: translateY(-5px); }
+    .win-bar {
+      background: rgba(255,255,255,.035); border-bottom: 1px solid var(--border);
+      padding: .6rem 1rem; display: flex; align-items: center; gap: .45rem;
+    }
+    .wd { width: 10px; height: 10px; border-radius: 50%; }
+    .wd.r { background: #ff5f57; }
+    .wd.y { background: #febc2e; }
+    .wd.g { background: #28c840; }
+    .win-title { font-family: var(--font-mono); font-size: .65rem; color: var(--muted); margin-left: .5rem; }
+    .proj-preview {
+      height: 130px;
+      background: linear-gradient(135deg, rgba(0,212,255,.04), rgba(59,130,246,.04));
+      display: flex; align-items: center; justify-content: center; font-size: 2.4rem;
+    }
+    .proj-body { padding: 1.2rem; }
+    .proj-stack { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: .8rem; }
+    .ptag {
+      font-family: var(--font-mono); font-size: .65rem;
+      padding: .2rem .5rem;
+      background: rgba(0,212,255,.07); border: 1px solid rgba(0,212,255,.14);
+      border-radius: 4px; color: var(--primary);
+    }
+    .proj-name { font-family: var(--font-mono); font-size: .95rem; font-weight: 600; color: var(--text); margin-bottom: .45rem; }
+    .proj-desc { font-size: .79rem; color: var(--muted); line-height: 1.55; margin-bottom: 1.1rem; }
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: .35rem;
+      font-family: var(--font-mono); font-size: .72rem; color: var(--muted);
+      border: 1px solid rgba(255,255,255,.07); border-radius: 4px;
+      padding: .4rem .85rem; letter-spacing: .05em;
+      cursor: not-allowed; opacity: .45;
+    }
+
+    /* ── CONTACT ── */
+    .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start; }
+    .c-info h3 {
+      font-family: var(--font-mono); font-size: .95rem; font-weight: 400;
+      color: var(--muted); line-height: 1.7; margin-bottom: 2rem;
+    }
+    .c-links { display: flex; flex-direction: column; gap: .9rem; }
+    .c-link {
+      display: flex; align-items: center; gap: .9rem;
+      padding: .95rem 1.2rem;
+      background: rgba(255,255,255,.018); border: 1px solid var(--border);
+      border-radius: 10px;
+      transition: border-color .25s, box-shadow .25s, transform .25s var(--ease-out);
+    }
+    .c-link:hover { border-color: var(--border-hover); box-shadow: 0 0 22px var(--glow); transform: translateX(4px); }
+    .c-ico {
+      width: 36px; height: 36px; flex-shrink: 0;
+      background: rgba(0,212,255,.08); border: 1px solid rgba(0,212,255,.15);
+      border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: .95rem;
+    }
+    .c-lbl { font-family: var(--font-mono); font-size: .65rem; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; margin-bottom: .1rem; }
+    .c-val { font-family: var(--font-mono); font-size: .84rem; color: var(--text); }
+    .c-arr { color: var(--muted); font-size: .85rem; margin-left: auto; transition: transform .2s, color .2s; }
+    .c-link:hover .c-arr { transform: translateX(3px); color: var(--primary); }
+    .c-form {
+      background: rgba(255,255,255,.018); border: 1px solid var(--border);
+      border-radius: 14px; padding: 2rem;
+    }
+    .f-group { margin-bottom: 1.2rem; }
+    .f-lbl {
+      display: block; font-family: var(--font-mono); font-size: .65rem;
+      color: var(--muted); letter-spacing: .12em; text-transform: uppercase; margin-bottom: .5rem;
+    }
+    .f-inp, .f-ta {
+      width: 100%; background: rgba(255,255,255,.028);
+      border: 1px solid rgba(255,255,255,.07); border-radius: 8px;
+      padding: .75rem 1rem; color: var(--text);
+      font-family: var(--font-body); font-size: .9375rem;
+      outline: none; -webkit-appearance: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .f-inp::placeholder, .f-ta::placeholder { color: rgba(100,116,139,.45); }
+    .f-inp:focus, .f-ta:focus {
+      border-color: rgba(0,212,255,.38);
+      box-shadow: 0 0 0 3px rgba(0,212,255,.07);
+    }
+    .f-ta { resize: vertical; min-height: 118px; line-height: 1.6; }
+    .btn-sub {
+      width: 100%; font-family: var(--font-mono); font-size: .85rem; font-weight: 600;
+      letter-spacing: .08em; text-transform: uppercase;
+      padding: .9rem; background: var(--primary); color: var(--bg);
+      border: none; border-radius: 8px; cursor: pointer;
+      transition: transform .25s var(--ease-out), box-shadow .25s, background .25s;
+    }
+    .btn-sub:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,212,255,.38); }
+    .btn-sub:active { transform: translateY(0); }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid rgba(255,255,255,.055);
+      padding: 2rem; max-width: 1180px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 1rem;
+    }
+    .ft { font-family: var(--font-mono); font-size: .72rem; color: var(--muted); }
+    .ft span { color: var(--primary); }
+    .ft-links { display: flex; gap: 1.5rem; }
+    .ft-links a { font-family: var(--font-mono); font-size: .72rem; color: var(--muted); transition: color .2s; }
+    .ft-links a:hover { color: var(--primary); }
+
+    /* ── KEYFRAMES ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.55;transform:scale(.82)} }
+    @keyframes scrollBounce { 0%,100%{transform:translateY(0);opacity:1} 50%{transform:translateY(8px);opacity:.38} }
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:1024px){
+      .about-grid { grid-template-columns:1fr; gap:3rem; }
+      .contact-grid { grid-template-columns:1fr; gap:3rem; }
+    }
+    @media(max-width:768px){
+      .nav-links,.nav-cta { display:none; }
+      .hamburger { display:flex; }
+      footer { flex-direction:column; text-align:center; align-items:center; }
+    }
+    @media(max-width:500px){
+      .hero-btns { flex-direction:column; align-items:center; }
+      .btn-p,.btn-s { width:100%; justify-content:center; }
+      .svc-grid { grid-template-columns:1fr 1fr; }
+      .stats { grid-template-columns:1fr 1fr; }
+    }
+    @media(max-width:380px){
+      .svc-grid { grid-template-columns:1fr; }
+    }
+
+    /* ── THEME TOGGLE BUTTON ── */
+    .theme-btn {
+      width: 38px; height: 38px;
+      border: 1px solid var(--border); border-radius: 9px;
+      background: rgba(255,255,255,.045);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 1.05rem; flex-shrink: 0;
+      transition: background .2s, border-color .2s, transform .35s cubic-bezier(.34,1.56,.64,1);
+    }
+    .theme-btn:hover { background: rgba(255,255,255,.1); border-color: var(--border-hover); }
+    .theme-btn.spin { transform: rotate(360deg) scale(1.18); }
+
+    /* ── LIGHT THEME ── */
+    html.light {
+      --bg:           #eef2fc;
+      --surface:      #e3e9f8;
+      --surface2:     #d8e1f5;
+      --primary:      #0077bb;
+      --blue:         #1d6ef5;
+      --text:         #0d1526;
+      --dim:          #1e2d47;
+      --muted:        #5a6a85;
+      --border:       rgba(0,100,185,.14);
+      --border-hover: rgba(0,100,185,.4);
+      --glow:         rgba(0,100,185,.1);
+      --glow-strong:  rgba(0,100,185,.18);
+    }
+
+    html.light nav.scrolled {
+      background: rgba(238,242,252,.92);
+      border-bottom-color: rgba(0,100,185,.12);
+    }
+    html.light #mob-menu { background: rgba(238,242,252,.98); }
+
+    /* hero */
+    html.light .hero-name {
+      background: linear-gradient(135deg, #0d1526 0%, #1e3a8a 38%, #0077bb 68%, #0ea5e9 100%);
+      -webkit-background-clip: text; background-clip: text;
+    }
+    html.light .hero-badge {
+      background: rgba(0,100,185,.07); border-color: rgba(0,100,185,.22);
+    }
+    html.light .btn-s {
+      border-color: rgba(0,0,0,.14); color: var(--text);
+    }
+    html.light .btn-s:hover { border-color: rgba(0,0,0,.3); color: var(--dim); box-shadow: 0 8px 24px rgba(0,0,0,.1); }
+    html.light .btn-p:hover { box-shadow: 0 8px 30px rgba(0,100,185,.32); }
+    html.light .nav-cta:hover { box-shadow: 0 0 22px rgba(0,100,185,.3); }
+
+    /* cards & surfaces */
+    html.light .sk-card,
+    html.light .svc,
+    html.light .proj,
+    html.light .stat,
+    html.light .c-link,
+    html.light .c-form,
+    html.light .port-notice {
+      background: rgba(255,255,255,.72);
+      border-color: rgba(0,100,185,.12);
+      backdrop-filter: blur(6px);
+    }
+    html.light .sk-card:hover,
+    html.light .svc:hover { border-color: rgba(0,100,185,.32); box-shadow: 0 0 22px rgba(0,100,185,.1); }
+    html.light .proj:hover { border-color: rgba(0,100,185,.32); box-shadow: 0 0 30px rgba(0,100,185,.14); }
+    html.light .stat:hover { border-color: rgba(0,100,185,.32); box-shadow: 0 0 22px rgba(0,100,185,.1); }
+    html.light .c-link:hover { border-color: rgba(0,100,185,.35); box-shadow: 0 0 22px rgba(0,100,185,.1); }
+
+    html.light .sk-hd { border-bottom-color: rgba(0,0,0,.07); }
+    html.light .tag { background: rgba(0,0,0,.04); border-color: rgba(0,0,0,.09); color: var(--dim); }
+    html.light .tag.f { background: rgba(0,100,185,.08); border-color: rgba(0,100,185,.22); }
+    html.light .tag:hover { background: rgba(0,100,185,.08); border-color: rgba(0,100,185,.3); }
+    html.light .sk-ico,
+    html.light .svc-ico,
+    html.light .c-ico { background: rgba(0,100,185,.07); border-color: rgba(0,100,185,.18); }
+    html.light .ptag { background: rgba(0,100,185,.07); border-color: rgba(0,100,185,.17); }
+    html.light .win-bar { background: rgba(0,0,0,.04); border-bottom-color: rgba(0,0,0,.07); }
+    html.light .proj-preview { background: linear-gradient(135deg, rgba(0,100,185,.04), rgba(29,110,245,.04)); }
+    html.light .btn-ghost { border-color: rgba(0,0,0,.09); color: var(--muted); }
+
+    /* form */
+    html.light .f-inp, html.light .f-ta {
+      background: rgba(255,255,255,.85); border-color: rgba(0,0,0,.1); color: var(--text);
+    }
+    html.light .f-inp:focus, html.light .f-ta:focus {
+      border-color: rgba(0,100,185,.38); box-shadow: 0 0 0 3px rgba(0,100,185,.07);
+    }
+    html.light .f-inp::placeholder, html.light .f-ta::placeholder { color: rgba(90,106,133,.4); }
+
+    /* separators */
+    html.light .sep { border-top-color: rgba(0,0,0,.07); }
+    html.light footer { border-top-color: rgba(0,0,0,.09); }
+    html.light .theme-btn { background: rgba(0,0,0,.05); border-color: rgba(0,100,185,.2); }
+    html.light .theme-btn:hover { background: rgba(0,0,0,.1); }
+    html.light .hamburger span { background: var(--text); }
+
+    /* cursor */
+    html.light #cur-dot { background: var(--primary); mix-blend-mode: multiply; }
+    html.light #cur-ring { border-color: rgba(0,100,185,.4); }
+    html.light #cur-ring.h { border-color: rgba(0,100,185,.75); }
+
+    /* misc */
+    html.light .about-text p { color: var(--dim); }
+    html.light .hl { background: linear-gradient(90deg,rgba(0,100,185,.09),rgba(29,110,245,.06)); }
+    html.light .scroll-pip { border-color: rgba(0,100,185,.3); }
+    html.light .hero-scroll-text { color: var(--muted); }
+  </style>
+</head>
+<body>
+
+<div id="cur-dot"></div>
+<div id="cur-ring"></div>
+
+<!-- Mobile menu -->
+<div id="mob-menu">
+  <button id="mob-close">✕</button>
+  <a href="#about"     onclick="closeMob()">Обо мне</a>
+  <a href="#skills"    onclick="closeMob()">Навыки</a>
+  <a href="#services"  onclick="closeMob()">Услуги</a>
+  <a href="#portfolio" onclick="closeMob()">Портфолио</a>
+  <a href="#contact"   onclick="closeMob()">Контакты</a>
+</div>
+
+<!-- Nav -->
+<nav id="nav">
+  <div class="nav-logo"><span>~/</span>kitveff</div>
+  <ul class="nav-links">
+    <li><a href="#about">Обо мне</a></li>
+    <li><a href="#skills">Навыки</a></li>
+    <li><a href="#services">Услуги</a></li>
+    <li><a href="#portfolio">Портфолио</a></li>
+    <li><a href="#contact">Контакты</a></li>
+  </ul>
+  <a href="https://t.me/kitveff" target="_blank" rel="noopener" class="nav-cta">Написать →</a>
+  <button id="theme-btn" class="theme-btn" onclick="toggleTheme()" title="Сменить тему" aria-label="Сменить тему">
+    <span id="theme-icon">☀️</span>
+  </button>
+  <div class="hamburger" onclick="openMob()"><span></span><span></span><span></span></div>
+</nav>
+
+<!-- Hero -->
+<section id="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-inner">
+    <div class="hero-badge">Доступен для проектов</div>
+    <h1 class="hero-name">Артём Китаев</h1>
+    <div class="hero-role">
+      <span class="pfx">~/role →</span>
+      <span id="tw"></span><span class="cur"></span>
+    </div>
+    <p class="hero-tag"><em>«Надёжная инфраструктура. Чистый код. Реальные результаты.»</em></p>
+    <div class="hero-btns">
+      <a href="https://t.me/kitveff" target="_blank" rel="noopener" class="btn-p">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8l-1.68 7.92c-.13.59-.47.74-.95.46l-2.6-1.92-1.25 1.21c-.14.14-.26.26-.53.26l.19-2.67 4.87-4.4c.21-.19-.05-.29-.32-.1L7.18 14.9l-2.54-.8c-.55-.17-.56-.55.12-.82l9.93-3.83c.46-.17.86.11.95.35z"/></svg>
+        Написать в Telegram
+      </a>
+      <a href="https://github.com/kitveff" target="_blank" rel="noopener" class="btn-s">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2A10 10 0 002 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0012 2z"/></svg>
+        Посмотреть GitHub
+      </a>
+    </div>
+    <div class="scroll-hint">
+      <span>Скролл</span>
+      <div class="scroll-pip"></div>
+    </div>
+  </div>
+</section>
+
+<!-- About -->
+<div class="sep">
+<div class="wrap" id="about">
+  <div class="s-head rv">
+    <div class="s-label">01. Обо мне</div>
+    <h2 class="s-title">Инфраструктура<br>и разработка в одном</h2>
+  </div>
+  <div class="about-grid">
+    <div class="about-text rv d1">
+      <p><strong>6+ лет в IT</strong> — от мониторинга и инфраструктуры до автоматизации и разработки. Сейчас работаю <span class="hl">Senior Support Engineer в МТС</span>, где занимаюсь надёжностью систем, разбором инцидентов и построением процессов.</p>
+      <p>Параллельно развиваю фриланс-направление: пишу <strong>Telegram-боты</strong>, автоматизирую процессы на Python, создаю лендинги и веб-приложения. Понимаю как инфраструктуру, так и продукт — это <strong>редкое сочетание</strong>.</p>
+      <p>Если задача требует не просто написать код, а сделать так, чтобы это работало стабильно, масштабировалось и не падало в 3 ночи — это ко мне.</p>
+    </div>
+    <div class="stats rv d2">
+      <div class="stat">
+        <div class="stat-n" data-count="6">0</div>
+        <div class="stat-l">лет в IT-индустрии</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n">МТС</div>
+        <div class="stat-l">Senior Support Engineer</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n" data-count="20">0</div>
+        <div class="stat-l">технологий в стеке</div>
+      </div>
+      <div class="stat">
+        <div class="stat-n">SPB</div>
+        <div class="stat-l">Санкт-Петербург</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Skills -->
+<div class="sep">
+<div class="wrap" id="skills">
+  <div class="s-head rv">
+    <div class="s-label">02. Навыки</div>
+    <h2 class="s-title">Технологический стек</h2>
+  </div>
+  <div class="skills-grid">
+    <div class="sk-card rv d1">
+      <div class="sk-hd"><div class="sk-ico">🐍</div><div class="sk-name">&gt;_ core_stack</div></div>
+      <div class="sk-tags">
+        <span class="tag f">Python</span><span class="tag f">Docker</span>
+        <span class="tag f">Docker Compose</span><span class="tag f">Telegram Bots</span>
+        <span class="tag">Docker Swarm</span>
+      </div>
+    </div>
+    <div class="sk-card rv d2">
+      <div class="sk-hd"><div class="sk-ico">☁️</div><div class="sk-name">&gt;_ infrastructure</div></div>
+      <div class="sk-tags">
+        <span class="tag">Kubernetes</span><span class="tag">Ansible</span>
+        <span class="tag">Terraform</span><span class="tag">GitLab CI</span>
+        <span class="tag">Azure DevOps</span>
+      </div>
+    </div>
+    <div class="sk-card rv d3">
+      <div class="sk-hd"><div class="sk-ico">📊</div><div class="sk-name">&gt;_ monitoring</div></div>
+      <div class="sk-tags">
+        <span class="tag">Grafana</span><span class="tag">Prometheus</span>
+        <span class="tag">Victoria Metrics</span><span class="tag">ELK Stack</span>
+      </div>
+    </div>
+    <div class="sk-card rv d4">
+      <div class="sk-hd"><div class="sk-ico">🔧</div><div class="sk-name">&gt;_ tools</div></div>
+      <div class="sk-tags">
+        <span class="tag">Linux</span><span class="tag">Bash</span><span class="tag">Git</span>
+        <span class="tag">SQL</span><span class="tag">RabbitMQ</span>
+        <span class="tag">Postman</span><span class="tag">Swagger</span><span class="tag">Jira</span>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Services -->
+<div class="sep">
+<div class="wrap" id="services">
+  <div class="s-head rv">
+    <div class="s-label">03. Услуги</div>
+    <h2 class="s-title">Что могу сделать</h2>
+  </div>
+  <div class="svc-grid">
+    <div class="svc rv d1">
+      <div class="svc-ico">🤖</div>
+      <div class="svc-title">Telegram-боты</div>
+      <div class="svc-desc">Разработка ботов под бизнес-задачи: каталоги, CRM-интеграции, уведомления, автоответы</div>
+    </div>
+    <div class="svc rv d2">
+      <div class="svc-ico">⚡</div>
+      <div class="svc-title">Автоматизация</div>
+      <div class="svc-desc">Python-скрипты, интеграции API, автоматизация рутинных процессов и отчётности</div>
+    </div>
+    <div class="svc rv d3">
+      <div class="svc-ico">🌐</div>
+      <div class="svc-title">Веб-разработка</div>
+      <div class="svc-desc">Лендинги, корпоративные сайты и небольшие веб-приложения с современным стеком</div>
+    </div>
+    <div class="svc rv d4">
+      <div class="svc-ico">🚀</div>
+      <div class="svc-title">DevOps / Деплой</div>
+      <div class="svc-desc">CI/CD пайплайны, контейнеризация, деплой и мониторинг проекта</div>
+    </div>
+    <div class="svc rv d5">
+      <div class="svc-ico">🎯</div>
+      <div class="svc-title">Консультации</div>
+      <div class="svc-desc">Аудит инфраструктуры, выбор стека, code review и рекомендации по надёжности</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Portfolio -->
+<div class="sep">
+<div class="wrap" id="portfolio">
+  <div class="s-head rv">
+    <div class="s-label">04. Портфолио</div>
+    <h2 class="s-title">Проекты</h2>
+  </div>
+  <div class="port-notice rv">Проекты в разработке — скоро здесь появятся реальные кейсы</div>
+  <div class="port-grid">
+    <div class="proj rv d1">
+      <div class="win-bar">
+        <div class="wd r"></div><div class="wd y"></div><div class="wd g"></div>
+        <span class="win-title">~/projects/tg-bot-crm</span>
+      </div>
+      <div class="proj-preview">🤖</div>
+      <div class="proj-body">
+        <div class="proj-stack">
+          <span class="ptag">Python</span><span class="ptag">aiogram</span>
+          <span class="ptag">PostgreSQL</span><span class="ptag">Docker</span>
+        </div>
+        <div class="proj-name">CRM-бот для бизнеса</div>
+        <div class="proj-desc">Telegram-бот с CRM-функционалом: управление клиентами, сделками, автоуведомления и аналитика в чате</div>
+        <span class="btn-ghost">Подробнее →</span>
+      </div>
+    </div>
+    <div class="proj rv d2">
+      <div class="win-bar">
+        <div class="wd r"></div><div class="wd y"></div><div class="wd g"></div>
+        <span class="win-title">~/projects/infra-monitor</span>
+      </div>
+      <div class="proj-preview">📊</div>
+      <div class="proj-body">
+        <div class="proj-stack">
+          <span class="ptag">Grafana</span><span class="ptag">Prometheus</span>
+          <span class="ptag">Docker Compose</span><span class="ptag">Ansible</span>
+        </div>
+        <div class="proj-name">Monitoring Stack</div>
+        <div class="proj-desc">Готовый стек мониторинга инфраструктуры: метрики, алерты, дашборды — разворачивается одной командой</div>
+        <span class="btn-ghost">Подробнее →</span>
+      </div>
+    </div>
+    <div class="proj rv d3">
+      <div class="win-bar">
+        <div class="wd r"></div><div class="wd y"></div><div class="wd g"></div>
+        <span class="win-title">~/projects/ci-cd-template</span>
+      </div>
+      <div class="proj-preview">🚀</div>
+      <div class="proj-body">
+        <div class="proj-stack">
+          <span class="ptag">GitLab CI</span><span class="ptag">Docker</span>
+          <span class="ptag">Bash</span><span class="ptag">Terraform</span>
+        </div>
+        <div class="proj-name">CI/CD Pipeline Template</div>
+        <div class="proj-desc">Шаблон CI/CD для быстрого старта: тесты, сборка, деплой с нотификациями в Telegram</div>
+        <span class="btn-ghost">Подробнее →</span>
+      </div>
+    </div>
+    <div class="proj rv d4">
+      <div class="win-bar">
+        <div class="wd r"></div><div class="wd y"></div><div class="wd g"></div>
+        <span class="win-title">~/projects/automation-svc</span>
+      </div>
+      <div class="proj-preview">⚙️</div>
+      <div class="proj-body">
+        <div class="proj-stack">
+          <span class="ptag">Python</span><span class="ptag">FastAPI</span>
+          <span class="ptag">RabbitMQ</span><span class="ptag">Redis</span>
+        </div>
+        <div class="proj-name">Automation Service</div>
+        <div class="proj-desc">Микросервис для автоматизации бизнес-процессов: интеграции с API, очереди задач, вебхуки</div>
+        <span class="btn-ghost">Подробнее →</span>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Contact -->
+<div class="sep">
+<div class="wrap" id="contact">
+  <div class="s-head rv">
+    <div class="s-label">05. Контакты</div>
+    <h2 class="s-title">Есть задача?<br>Давай обсудим</h2>
+  </div>
+  <div class="contact-grid">
+    <div class="rv d1">
+      <div class="c-info">
+        <h3>Расскажи о проекте — отвечу в течение дня.<br>Работаю удалённо, берусь за интересные задачи.</h3>
+      </div>
+      <div class="c-links">
+        <a href="https://t.me/kitveff" target="_blank" rel="noopener" class="c-link">
+          <div class="c-ico">✈️</div>
+          <div><div class="c-lbl">Telegram</div><div class="c-val">@kitveff</div></div>
+          <span class="c-arr">→</span>
+        </a>
+        <a href="mailto:kitveff@gmail.com" class="c-link">
+          <div class="c-ico">📧</div>
+          <div><div class="c-lbl">Email</div><div class="c-val">kitveff@gmail.com</div></div>
+          <span class="c-arr">→</span>
+        </a>
+        <a href="https://github.com/kitveff" target="_blank" rel="noopener" class="c-link">
+          <div class="c-ico">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" style="color:var(--primary)"><path d="M12 2A10 10 0 002 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0012 2z"/></svg>
+          </div>
+          <div><div class="c-lbl">GitHub</div><div class="c-val">github.com/kitveff</div></div>
+          <span class="c-arr">→</span>
+        </a>
+      </div>
+    </div>
+    <div class="c-form rv d2">
+      <form id="cform" onsubmit="handleForm(event)">
+        <div class="f-group">
+          <label class="f-lbl" for="f-name">Имя</label>
+          <input class="f-inp" type="text" id="f-name" placeholder="Как тебя зовут?" required>
+        </div>
+        <div class="f-group">
+          <label class="f-lbl" for="f-contact">Email или Telegram</label>
+          <input class="f-inp" type="text" id="f-contact" placeholder="@username или email@example.com" required>
+        </div>
+        <div class="f-group">
+          <label class="f-lbl" for="f-msg">Описание задачи</label>
+          <textarea class="f-ta" id="f-msg" placeholder="Что нужно сделать? Расскажи подробнее..." required></textarea>
+        </div>
+        <button type="submit" class="btn-sub" id="sub-btn">Отправить запрос →</button>
+      </form>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="ft">© 2026 <span>Артём Китаев</span> · Санкт-Петербург</div>
+  <div class="ft-links">
+    <a href="https://t.me/kitveff" target="_blank" rel="noopener">Telegram</a>
+    <a href="mailto:kitveff@gmail.com">Email</a>
+    <a href="https://github.com/kitveff" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</footer>
+
+<script>
+// ── CURSOR ──
+const dot = document.getElementById('cur-dot');
+const ring = document.getElementById('cur-ring');
+let mx = 0, my = 0, rx = 0, ry = 0;
+
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; dot.style.left = mx+'px'; dot.style.top = my+'px'; });
+document.addEventListener('mouseleave', () => { dot.style.opacity='0'; ring.style.opacity='0'; });
+document.addEventListener('mouseenter', () => { dot.style.opacity='1'; ring.style.opacity='1'; });
+
+(function animRing(){
+  rx += (mx - rx) * 0.11; ry += (my - ry) * 0.11;
+  ring.style.left = rx+'px'; ring.style.top = ry+'px';
+  requestAnimationFrame(animRing);
+})();
+
+document.querySelectorAll('a,button,.sk-card,.svc,.proj,.stat,.c-link').forEach(el => {
+  el.addEventListener('mouseenter', () => ring.classList.add('h'));
+  el.addEventListener('mouseleave', () => ring.classList.remove('h'));
+});
+
+// ── CANVAS DOT GRID ──
+const cvs = document.getElementById('hero-canvas');
+const c = cvs.getContext('2d');
+let dots = [], cmx = -2000, cmy = -2000;
+
+function resize(){
+  cvs.width = window.innerWidth; cvs.height = window.innerHeight; initDots();
+}
+
+function initDots(){
+  dots = [];
+  const sp = 44;
+  const cols = Math.ceil(cvs.width/sp)+1, rows = Math.ceil(cvs.height/sp)+1;
+  for(let i=0;i<cols;i++) for(let j=0;j<rows;j++)
+    dots.push({ bx:i*sp, by:j*sp, x:i*sp, y:j*sp, op:0.1+Math.random()*.08 });
+}
+
+function drawFrame(t){
+  c.clearRect(0,0,cvs.width,cvs.height);
+  dots.forEach(d => {
+    const dx=cmx-d.bx, dy=cmy-d.by, dist=Math.sqrt(dx*dx+dy*dy), maxD=130;
+    let op=d.op, sz=1.4;
+    if(dist<maxD){
+      const f=1-dist/maxD;
+      op=d.op+f*.55; sz=d.size||1.4+f*2.8;
+      if(dist>0){ d.x=d.bx-(dx/dist)*f*16; d.y=d.by-(dy/dist)*f*16; }
+    } else {
+      d.x+=(d.bx-d.x)*.07; d.y+=(d.by-d.y)*.07; sz=1.4;
+    }
+    const breathe=Math.sin(t*.0009+d.bx*.018+d.by*.018)*.028;
+    op=Math.min(Math.max(op+breathe,.04),.68);
+    const isLight = document.documentElement.classList.contains('light');
+    const dotRgb = isLight ? '0,100,185' : '0,212,255';
+    c.beginPath(); c.arc(d.x,d.y,sz,0,Math.PI*2);
+    c.fillStyle=`rgba(${dotRgb},${op})`; c.fill();
+  });
+  requestAnimationFrame(drawFrame);
+}
+
+document.getElementById('hero').addEventListener('mousemove', e => { cmx=e.clientX; cmy=e.clientY; });
+document.getElementById('hero').addEventListener('mouseleave', () => { cmx=-2000; cmy=-2000; });
+window.addEventListener('resize', resize);
+resize(); requestAnimationFrame(drawFrame);
+
+// ── TYPEWRITER ──
+const roles = ['SRE-инженер','DevOps-инженер','Vibe-coder','Python-разработчик'];
+let ri=0, ci=0, del=false, td=100;
+const tw = document.getElementById('tw');
+
+function type(){
+  const r=roles[ri];
+  if(!del){ tw.textContent=r.slice(0,++ci); if(ci===r.length){del=true;td=2100;} else td=75+Math.random()*40; }
+  else { tw.textContent=r.slice(0,--ci); if(ci===0){del=false;ri=(ri+1)%roles.length;td=380;} else td=38; }
+  setTimeout(type,td);
+}
+setTimeout(type, 1900);
+
+// ── NAV SCROLL ──
+window.addEventListener('scroll', () => {
+  document.getElementById('nav').classList.toggle('scrolled', window.scrollY>50);
+});
+
+// ── REVEAL ──
+const ro = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('vis'); });
+}, { threshold:.1 });
+document.querySelectorAll('.rv').forEach(el => ro.observe(el));
+
+// ── COUNTERS ──
+const co = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(!e.isIntersecting) return;
+    const el=e.target, target=+el.dataset.count;
+    if(isNaN(target)) return;
+    let cur=0; const step=target/38;
+    const iv=setInterval(()=>{ cur+=step; if(cur>=target){el.textContent=target+'+';clearInterval(iv);}else el.textContent=Math.floor(cur); },42);
+    co.unobserve(el);
+  });
+},{threshold:.5});
+document.querySelectorAll('[data-count]').forEach(el => co.observe(el));
+
+// ── MOBILE MENU ──
+function openMob(){ document.getElementById('mob-menu').classList.add('open'); document.body.style.overflow='hidden'; }
+function closeMob(){ document.getElementById('mob-menu').classList.remove('open'); document.body.style.overflow=''; }
+document.getElementById('mob-close').addEventListener('click', closeMob);
+
+// ── THEME TOGGLE ──
+let curTheme = localStorage.getItem('theme') || 'dark';
+
+function applyTheme(t) {
+  const isLight = t === 'light';
+  document.documentElement.classList.toggle('light', isLight);
+  document.getElementById('theme-icon').textContent = isLight ? '🌙' : '☀️';
+  curTheme = t;
+  localStorage.setItem('theme', t);
+}
+
+function toggleTheme() {
+  const btn = document.getElementById('theme-btn');
+  btn.classList.add('spin');
+  setTimeout(() => btn.classList.remove('spin'), 400);
+  applyTheme(curTheme === 'dark' ? 'light' : 'dark');
+}
+
+applyTheme(curTheme);
+
+// ── FORM ──
+function handleForm(e){
+  e.preventDefault();
+  const name=document.getElementById('f-name').value;
+  const contact=document.getElementById('f-contact').value;
+  const msg=document.getElementById('f-msg').value;
+  const text=`Привет! Меня зовут ${name}.\n\nКак со мной связаться: ${contact}\n\nЗадача:\n${msg}`;
+  const btn=document.getElementById('sub-btn');
+  btn.textContent='✓ Открываю Telegram...'; btn.style.background='#22c55e';
+  setTimeout(()=>{
+    window.open('https://t.me/kitveff?text='+encodeURIComponent(text),'_blank');
+    setTimeout(()=>{ btn.textContent='Отправить запрос →'; btn.style.background=''; e.target.reset(); },2000);
+  },500);
+}
+</script>
+</body>
+</html>
