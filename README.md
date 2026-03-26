@@ -2,7 +2,7 @@
 
 Лендинг-визитка для SRE-инженера, DevOps и Python-разработчика.
 
-**Live:** [kitveff.github.io/mylandingportfolio](https://kitveff.github.io/mylandingportfolio) *(после включения GitHub Pages)*
+**Live:** [kitveff.github.io/mylandingportfolio](https://kitveff.github.io/mylandingpage) *(после включения GitHub Pages)*
 
 ---
 
